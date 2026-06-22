@@ -68,5 +68,3 @@ function getFileNameFromDisposition(h) {
   }
   return val.replace(/^"|"$/g, "");
 }
-// --- IGNORE ---
-// File: server.js

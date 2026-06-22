@@ -1,6 +1,5 @@
 // server.js
 // *** Yalnızca yerel/test amaçlı kullanım. Yayına açmayın. ***
-// *** OLUŞABİLECEK HUKUKİ RİSKLERDEN DOLAYI SORULULUK KABUL EDİLMEMEKTEDİR. YEREK KULLANIM İÇİN TASARLANMIŞTIR ***
 
 const express = require("express");
 const path = require("path");
@@ -8,10 +7,22 @@ const fs = require("fs");
 const os = require("os");
 const sanitize = require("sanitize-filename");
 
-// youtube-dl-exec'i yt-dlp binarıyla kullan
-const ytdlp = require("youtube-dl-exec").create(
-  path.join(__dirname, "bin", "yt-dlp.exe")
-);
+// youtube-dl-exec'i konfigüre et
+// Docker'da pip'ten yüklü yt-dlp, lokal'de bin klasöründeki binary
+let ytdlpPath;
+try {
+  // Local binary'yi dene
+  ytdlpPath = path.join(__dirname, "bin", "yt-dlp.exe");
+  if (process.platform !== "win32") {
+    ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
+  }
+  fs.accessSync(ytdlpPath);
+} catch (e) {
+  // Local yoksa, sistem PATH'den yt-dlp'yi kullan (Docker)
+  ytdlpPath = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
+}
+
+const ytdlp = require("youtube-dl-exec").create(ytdlpPath);
 
 const app = express();
 const PORT = process.env.PORT || 3000; // 3000 doluysa sorun çıkmasın
@@ -46,26 +57,39 @@ app.post("/api/convert", async (req, res) => {
       noWarnings: true,
       noCheckCertificates: true,
       noPlaylist: true, // <- önemli
-      // bazı ağ ortamlarında gerekebilir:
-      // userAgent: 'Mozilla/5.0',
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     }, { shell: false });
 
     const rawTitle = (info && (info.title || info.fulltitle)) || "audio";
-    const safeTitle = (sanitize(rawTitle) || "audio").trim();
+    
+    // Başlığı temizle - Türkçe karakterleri koru, gereksiz olanları kaldır
+    let cleanTitle = rawTitle
+      .replace(/\s+/g, " ")           // Çoklu boşlukları tek boşluğa çevir
+      .replace(/[<>:"|?*\/\\]/g, "")  // Dosya adında yasak karakterleri kaldır
+      .substring(0, 60)               // İlk 60 karakter
+      .trim();
+    
+    // Eğer boş kaldıysa fallback
+    if (!cleanTitle || cleanTitle.length === 0) {
+      cleanTitle = "audio";
+    }
+    
+    // Sonunda da sanitize et (Türkçe karakterleri koru)
+    const safeTitle = sanitize(cleanTitle) || "audio";
 
     // Çıktı şablonu: temp klasöre
     const outputTemplate = path.join(tmpDir, "%(title)s.%(ext)s");
 
     // Doğrudan MP3’e dönüştür (FFmpeg gerekli)
     await ytdlp(url, {
+      format: "bestaudio/best",
       extractAudio: true,
       audioFormat: "mp3",
-      audioQuality: "0",   // en iyi
+      audioQuality: "192",   // stabil kalite
       noPlaylist: true,    // <- önemli
       output: outputTemplate,
       noCheckCertificates: true,
-      noWarnings: true,
-      // yavaş ağlarda işe yarar (socket timeout)
+      noWarnings: true,      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",      // yavaş ağlarda işe yarar (socket timeout)
       socketTimeout: "30",
     }, {
       // büyük çıktılarda buffer yetersizliği olmasın

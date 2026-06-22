@@ -32,25 +32,24 @@ Yerel bilgisayarında YouTube videolarını MP3 formatına dönüştüren basit 
 
 ---
 
-## ⚡ HIZLI BAŞLANGAÇ (2 Adım)
+## ⚡ HIZLI BAŞLANGAÇ
 
-### **Adım 1: Node.js İndir ve Kur**
+### **Adım 1: Docker Desktop Kur**
+📥 [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) indir → Kur → Restart
 
-📥 [nodejs.org](https://nodejs.org/) adresine git → **LTS sürümü indir** → Kur
-
-Kontrol et (PowerShell/CMD'de):
+### **Adım 2: Docker Image'ı Build Et**
+Proje klasöründe PowerShell/CMD aç ve çalıştır:
+```powershell
+docker build -t ytmp3 .
 ```
-node --version
+(İlk kez ~1-2 dakika sürer, sonra cache'den hızlı açılır)
+
+### **Adım 3: Konteyner'ı Çalıştır**
+```powershell
+docker run -p 3000:3000 ytmp3
 ```
 
-### **Adım 2: Uygulamayı Çalıştır**
-
-Proje klasöründe `setup.bat` dosyasına **çift tıkla** 
-
-Otomatik olacak:
-- ✅ Paketleri indirecek
-- ✅ Sunucuyu başlatacak
-- ✅ Tarayıcı linkini gösterecek
+Tarayıcıda aç: **http://localhost:3000**
 
 ---
 
@@ -86,25 +85,76 @@ Otomatik olacak:
 
 ## 🆘 Sorun Giderme
 
-### Hata: "Node.js yüklü değil"
+### **Node.js Kurulumu Hataları**
+
+#### Hata: "Node.js yüklü değil"
 → [nodejs.org](https://nodejs.org/) adresinden indir ve kur
 
-### Hata: "Port 3000 zaten kullanılıyor"
+#### Hata: "Port 3000 zaten kullanılıyor"
 → CMD'de şunu çalıştır:
 ```powershell
 $env:PORT=3001; node server.js
 ```
 Sonra aç: `http://localhost:3001`
 
-### Hata: "HTTP 405"
+---
+
+### **Docker Kurulumu Hataları**
+
+#### Hata: "docker: command not found" veya Docker açılmıyor
+→ Docker Desktop'ı indir ve yeniden başlat: [docker.com](https://www.docker.com/products/docker-desktop)
+
+#### Hata: "Error response from daemon"
+→ Docker Desktop'u kapat ve tekrar aç
+
+#### Docker Container'ı durdurmak istersen:
+```powershell
+# Çalışan container'ı göster
+docker ps
+
+# Container'ı durdur
+docker stop <CONTAINER_ID>
+
+# Tüm container'ları durdur
+docker stop $(docker ps -q)
+```
+
+---
+
+### **Genel Hatalar**
+
+#### Hata: "HTTP 405"
 → YouTube linkini kontrol et (sadece video URL'i, playlist parameter'i yok)
 
-### Hiç çalışmadı?
+#### Hata: "HTTP 403 - Forbidden"
+→ YouTube bot-detection engeli. User-Agent header eklenmiş, fakat YouTube politikası değişmişse, yt-dlp kütüphanesini güncellemek gerekebilir:
+```powershell
+npm install --upgrade youtube-dl-exec
+```
+
+#### Hiç çalışmadı?
 → Klasör yolunda Türkçe karakter var mı? Çıkar ve yeniden dene.
 
 ---
 
-## 💻 Manuel Çalıştırma (İleri Kullanıcılar)
+## � Proje Yapısı
+
+```
+ytmp3-local/
+├── server.js           ← Ana sunucu (Express.js)
+├── Dockerfile          ← Docker konteyner dosyası
+├── package.json        ← Node.js bağımlılıklar
+├── setup.bat           ← Windows otomasyonu
+├── .gitignore          ← Git hariç tutulacak dosyalar
+├── README.md           ← Bu dosya
+├── bin/                ← (isteğe bağlı) Araç/executable'lar
+└── public/             ← Web arayüzü
+    ├── index.html      ← Sayfa HTML'i
+    ├── app.js          ← JavaScript mantığı
+    └── style.css       ← Tasarım
+```
+
+---
 
 ```powershell
 # Paketleri indir
