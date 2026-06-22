@@ -1,0 +1,18 @@
+{
+  "name": "ytmp3-local",
+  "version": "1.0.0",
+  "description": "Yerel YouTube -> MP3 dönüştürücü (sadece kişisel/test amaçlı)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon --watch server.js --watch public server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sanitize-filename": "^1.6.3",
+    "youtube-dl-exec": "^3.0.25"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Yerel YouTube → MP3 (Test)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="./style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎵 YouTube → MP3 (Yerel/Test)</h1>
+      <p class="warn">
+        Bu araç yalnızca <b>kendi bilgisayarında</b> ve <b>kişisel/test</b>
+        amaçlı kullanım içindir.
+      </p>
+
+      <div class="card">
+        <label for="yturl">YouTube Linki</label>
+        <input id="yturl" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+        <button id="btn" disabled>Dönüştür</button>
+
+        <div id="status" class="status"></div>
+      </div>
+
+      <footer>
+        <a href="/health" target="_blank">Sunucu Durumu</a>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+<!-- --- IGNORE ---
+File: server.js 
